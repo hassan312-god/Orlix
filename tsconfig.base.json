@@ -9,6 +9,16 @@
     "strict": true,
     "skipLibCheck": true,
     "jsx": "react-jsx",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@orlix/types": ["packages/types/src/index.ts"],
+      "@orlix/types/*": ["packages/types/src/*"],
+      "@orlix/utils": ["packages/utils/src/index.ts"],
+      "@orlix/utils/*": ["packages/utils/src/*"],
+      "@orlix/ui": ["packages/ui/src/index.ts"],
+      "@orlix/ui/*": ["packages/ui/src/*"],
+      "@orlix/nexus": ["packages/nexus/src/index.ts"],
+      "@orlix/nexus/*": ["packages/nexus/src/*"]
+    }
   }
 }
