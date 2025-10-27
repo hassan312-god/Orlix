@@ -250,3 +250,45 @@ Dakar – Sénégal
 
 Projet sous licence propriétaire Orlix.
 Toute réutilisation, distribution ou modification sans autorisation écrite est interdite.
+
+---
+
+## 🚀 Démarrage rapide (Monorepo pnpm)
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Services disponibles :
+- Admin : http://localhost:3000
+- API : http://localhost:3001 (OpenAPI sur `/openapi.json`)
+- Studio : `pnpm --filter @orlix/studio tauri:dev`
+
+## 🧪 Qualité & Tests
+- Unitaire : `pnpm test`
+- Couverture : `pnpm test:coverage`
+- E2E : `pnpm e2e`
+- Lint : `pnpm lint`
+
+## 🐳 Stack Docker locale
+```bash
+docker-compose up --build
+```
+Cette commande provisionne PostgreSQL 15, l'API Fastify et l'Admin Next.js préconfigurés.
+
+## 🧬 Prisma & Base de données
+- Migration : `pnpm --filter @orlix/api db:migrate`
+- Seed : `pnpm --filter @orlix/api db:seed`
+
+## 🛠️ Workspace scripts
+| Package | Dev | Build |
+|---------|-----|-------|
+| Admin | `pnpm --filter @orlix/admin dev` | `pnpm --filter @orlix/admin build` |
+| API | `pnpm --filter @orlix/api dev` | `pnpm --filter @orlix/api build` |
+| Studio | `pnpm --filter @orlix/studio dev` | `pnpm --filter @orlix/studio tauri:build` |
+| Nexus | `pnpm --filter @orlix/nexus dev` | `pnpm --filter @orlix/nexus build` |
+| UI | `pnpm --filter @orlix/ui dev` | `pnpm --filter @orlix/ui build` |
+| Types | `pnpm --filter @orlix/types dev` | `pnpm --filter @orlix/types build` |
+| Utils | `pnpm --filter @orlix/utils dev` | `pnpm --filter @orlix/utils build` |
+

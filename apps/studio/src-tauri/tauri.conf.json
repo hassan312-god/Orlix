@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri-schema/master/schema.json",
+  "productName": "Orlix Studio",
+  "version": "0.1.0",
+  "identifier": "com.orlix.studio",
+  "build": {
+    "beforeDevCommand": "pnpm --filter @orlix/studio dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "pnpm --filter @orlix/studio build"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Orlix Studio",
+        "width": 1000,
+        "height": 720
+      }
+    ]
+  }
+}

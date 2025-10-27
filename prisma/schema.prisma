@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String
+  role      String
+  credits   Int      @default(0)
+  projects  Project[]
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  status      String    @default("draft")
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id])
+  agents      Agent[]
+  tasks       Task[]
+  createdAt   DateTime  @default(now())
+}
+
+model Agent {
+  id            String   @id @default(uuid())
+  name          String
+  provider      String
+  configuration Json
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id])
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  status    String   @default("pending")
+  resultId  String?
+  result    Result?  @relation(fields: [resultId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Result {
+  id        String   @id @default(uuid())
+  task      Task?
+  taskId    String?
+  output    Json
+  createdAt DateTime @default(now())
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  label     String
+  value     String
+  createdAt DateTime @default(now())
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String
+  plan      String
+  status    String
+  createdAt DateTime @default(now())
+}
