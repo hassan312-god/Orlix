@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:orlix@localhost:5432/orlix
+      OPENROUTER_API_KEY: sk-ci-openrouter
+      SUPABASE_URL: https://ci.supabase.local
+      SUPABASE_KEY: ci-public-key
+      JWT_SECRET: ci-jwt-secret
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: orlix
+          POSTGRES_DB: orlix
+        options: >-
+          --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Prisma migrate
+        run: pnpm --filter @orlix/api db:migrate
+      - name: Lint
+        run: pnpm lint
+      - name: Test
+        run: pnpm test
+      - name: E2E Tests
+        run: pnpm e2e
+      - name: Build
+        run: pnpm build

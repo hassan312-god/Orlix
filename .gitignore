@@ -1,0 +1,12 @@
+node_modules
+.pnpm-store
+.next
+out
+coverage
+apps/studio/dist
+apps/studio/node_modules
+apps/studio/src-tauri/target
+dist
+.DS_Store
+.env
+pnpm-lock.yaml

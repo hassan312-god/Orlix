@@ -1,252 +1,154 @@
-# 🧠 ORLIX – Universal AI Orchestration Platform
+# Orlix Platform Monorepo
 
-Orlix est un écosystème SaaS et Desktop permettant d’orchestrer, déployer et gérer des projets d’intelligence artificielle (agents, sites, apps, automatisations) via une interface centralisée et modulaire.
+Bienvenue dans le dépôt principal d'Orlix, une plateforme modulaire pour orchestrer des projets d'intelligence artificielle à travers une interface web (Admin), une application desktop (Studio) et une API Fastify connectée à Postgres. Ce README décrit l'organisation du monorepo, la pile technique, ainsi que les commandes essentielles pour développer, tester et déployer la plateforme.
 
-Ce projet regroupe :
-- **Orlix-Admin** : tableau de bord SaaS pour gérer projets, utilisateurs et API.
-- **Orlix-Nexus** : moteur d’orchestration multi-agents (GPT, Claude, Gemini, DeepSeek, Sora…).
-- **Orlix-Studio (Desktop)** : application Tauri/React pour le développement local et la synchro cloud.
-- **Orlix-Core** : API REST et base Postgres gérant les entités principales.
-- **Orlix-Hub** : CI/CD automatisée, génération de documentation et publication de builds.
+## Sommaire
+- [Architecture générale](#architecture-générale)
+- [Périmètre des applications](#périmètre-des-applications)
+- [Packages partagés](#packages-partagés)
+- [Pile technique](#pile-technique)
+- [Prérequis](#prérequis)
+- [Mise en route rapide](#mise-en-route-rapide)
+- [Bases de données & Prisma](#bases-de-données--prisma)
+- [Tests & Qualité](#tests--qualité)
+- [Docker & Infrastructure locale](#docker--infrastructure-locale)
+- [CI/CD GitHub Actions](#cicd-github-actions)
+- [Documentation](#documentation)
+- [Définition de fait](#définition-de-fait)
 
----
-
-## 🧩 Objectif
-
-Fournir un environnement complet pour :
-1. **Créer** des projets IA (sites, apps, bots, pipelines, etc.).
-2. **Orchestrer** des agents spécialisés (code, design, vidéo, musique, data).
-3. **Déployer** automatiquement les résultats sur le cloud (Supabase, GitHub, Vercel, etc.).
-4. **Suivre** l’avancement, les logs et les performances en temps réel.
-5. **Collaborer** entre administrateurs, développeurs et créateurs via un espace partagé.
-
----
-
-## ⚙️ Stack Technique
-
-| Domaine | Technologie |
-|----------|--------------|
-| **Langage principal** | TypeScript 5.6 |
-| **Frontend Web** | Next.js 14 + TailwindCSS + shadcn/ui |
-| **Desktop App** | Tauri (Rust + WebView) |
-| **Backend API** | Node.js + Fastify + Prisma + Supabase |
-| **Base de données** | PostgreSQL 15 |
-| **Auth** | Supabase Auth + JWT |
-| **Cloud Storage** | Supabase Storage |
-| **Queue / Workers** | BullMQ (Redis) |
-| **Tests** | Vitest + Playwright |
-| **CI/CD** | GitHub Actions |
-| **Docs** | Docusaurus (dans `/docs`) |
-| **Orchestration IA** | OpenRouter API + Orlix-Nexus orchestrator |
-| **Build** | pnpm + TurboRepo |
-
----
-
-## 🧠 Modules Principaux
-
-### 1. **Orlix-Admin**
-Interface web pour la gestion globale :
-- Tableau de bord
-- Gestion des utilisateurs / rôles
-- Création et suivi de projets IA
-- Historique des tâches, logs et crédits
-- Génération automatique de factures et rapports PDF
-
-### 2. **Orlix-Nexus**
-Moteur d’orchestration d’agents :
-- Agents configurables (Claude, GPT, Gemini, DeepSeek, Sora…)
-- Distribution de tâches via pipeline JSON
-- Persistance des états d’exécution
-- Webhooks et intégrations tierces (GitHub, Supabase, Notion)
-- Logs d’exécution et journal IA
-
-### 3. **Orlix-Studio (Desktop)**
-- Interface locale (Tauri) synchronisée avec le cloud
-- Outils offline (éditeur de prompt, scripts, simulation d’agents)
-- Synchronisation automatique avec Orlix-Admin
-- Exports PDF / Markdown / JSON
-
-### 4. **Orlix-Core (API)**
-Endpoints REST :
-- `/projects` : gestion CRUD
-- `/agents` : création et configuration
-- `/results` : résultats d’orchestration
-- `/auth` : gestion utilisateurs
-- `/billing` : crédits, abonnements
-
-### 5. **Orlix-Hub**
-- Déploiement automatique via GitHub Actions
-- Build Tauri (Windows, Linux, macOS)
-- Publication sur Supabase Edge Functions
-- Monitoring (p95, uptime, logs)
-
----
-
-## 🗂️ Structure du Dépôt
-
+## Architecture générale
+```
 orlix/
 ├─ apps/
-│ ├─ admin/ # Orlix-Admin (Next.js)
-│ ├─ studio/ # Orlix-Studio (Tauri/React)
-│ └─ api/ # Orlix-Core (Fastify/Prisma)
+│  ├─ admin/     # Interface Next.js 14
+│  ├─ api/       # API Fastify + Prisma
+│  └─ studio/    # Application desktop Tauri + React
 ├─ packages/
-│ ├─ nexus/ # Moteur d’orchestration IA
-│ ├─ ui/ # Composants partagés (shadcn/ui)
-│ ├─ types/ # Types globaux
-│ └─ utils/ # Fonctions communes
-├─ prisma/
-│ └─ schema.prisma
-├─ docs/
-│ └─ architecture.md
-├─ turbo.json
-├─ pnpm-workspace.yaml
-├─ Dockerfile
+│  ├─ nexus/     # Orchestrateur multi-agents
+│  ├─ types/     # Types et schémas partagés
+│  ├─ ui/        # Composants React communs
+│  └─ utils/     # Fonctions utilitaires
+├─ prisma/       # Schéma et migrations SQL
+├─ docs/         # Documentation technique
+├─ tests/        # Tests e2e Playwright
+├─ .github/      # Workflows CI/CD
 ├─ docker-compose.yml
-├─ .github/workflows/ci.yml
-└─ README.md
+├─ Dockerfile
+├─ package.json
+├─ pnpm-workspace.yaml
+└─ turbo.json
+```
 
----
+## Périmètre des applications
+### Admin (`apps/admin`)
+- Next.js 14 avec App Router.
+- UI Tailwind et composants partagés du package `@orlix/ui`.
+- Tests unitaires via Vitest + Testing Library (`apps/admin/tests`).
+- Endpoint de santé `/api/health` pour la supervision.
 
-## 🧱 Base de Données
+### API (`apps/api`)
+- Fastify 4 avec Prisma pour la persistance.
+- Point d'entrée `src/server.ts` exposant une route de santé et la documentation OpenAPI minimale.
+- Scripts `db:migrate`, `db:seed` et `db:generate` pour gérer la base Postgres.
 
-### Tables principales
-- `users` : comptes, rôles, crédits
-- `ai_projects` : projets orchestrés
-- `ai_agents` : agents configurés
-- `ai_tasks` : étapes exécutées
-- `ai_results` : sorties et logs
-- `subscriptions` : packs et paiements
-- `api_keys` : clés externes OpenRouter, Supabase, etc.
+### Studio (`apps/studio`)
+- Frontend Vite + React couplé à Tauri (Rust) pour le packaging desktop.
+- Commandes `tauri:dev` et `tauri:build` pour lancer les builds natifs.
+- Tests Vitest couvrant les composants principaux.
 
----
+## Packages partagés
+| Package | Description | Emplacement |
+|---------|-------------|-------------|
+| `@orlix/nexus` | Abstractions d'orchestration et clients IA factices pour le prototypage. | `packages/nexus` |
+| `@orlix/types` | Types TypeScript communs aux apps et services. | `packages/types` |
+| `@orlix/ui` | Composants React réutilisables (ex. `StatusBadge`). | `packages/ui` |
+| `@orlix/utils` | Fonctions utilitaires (formatage, helpers tests). | `packages/utils` |
 
-## 🧪 Tests & Qualité
+Chaque package possède son `package.json`, `tsconfig.json`, un README spécifique et une suite de tests Vitest.
 
-| Type | Outil | Objectif |
-|------|--------|-----------|
-| Unitaires | Vitest | Couverture ≥ 80% |
-| End-to-end | Playwright | Flux utilisateur complet |
-| Lint | ESLint + Prettier | Aucun warning |
-| Typage | tsc strict | Zéro erreur |
-| Sécurité | npm audit | Pas de vulnérabilité critique |
+## Pile technique
+- **Langage** : TypeScript 5.x (Node.js 20 requis)
+- **Frontend Web** : Next.js 14, React 18, TailwindCSS
+- **Desktop** : Tauri 2 (Rust) + React via Vite
+- **Backend** : Fastify, Prisma, PostgreSQL 15
+- **Gestion monorepo** : pnpm 8 + Turborepo
+- **Qualité** : ESLint, Prettier, Vitest, Playwright
+- **CI/CD** : GitHub Actions (lint, build, tests, release Tauri)
 
----
+## Prérequis
+1. Node.js 20+
+2. pnpm 8 (`corepack enable` recommandé)
+3. Rust toolchain stable et dépendances Tauri (voir [docs Tauri](https://tauri.app))
+4. PostgreSQL 15 (local ou via Docker)
+5. Playwright browsers (`pnpm exec playwright install`)
 
-## 🚀 Scripts PNPM
-
+## Mise en route rapide
 ```bash
-# Démarrer tous les services
+pnpm install
+cp .env.example .env
 pnpm dev
-# Lancer l’API seule
-pnpm --filter api dev
-# Lancer le front admin
-pnpm --filter admin dev
-# Lancer l’app desktop
-pnpm --filter studio tauri dev
-# Tests et lint
-pnpm lint && pnpm test
-# Build complet
-pnpm build
-🐳 Déploiement (Docker)
+```
+La commande `pnpm dev` lance en parallèle :
+- `@orlix/admin` sur http://localhost:3000
+- `@orlix/api` sur http://localhost:3001
+- `@orlix/studio` en mode Vite sur http://localhost:5173 (sans le shell Tauri)
+
+Pour cibler un projet spécifique :
+```bash
+pnpm --filter @orlix/admin dev
+pnpm --filter @orlix/api dev
+pnpm --filter @orlix/studio tauri:dev
+```
+
+## Bases de données & Prisma
+- Schéma : `prisma/schema.prisma`
+- Migration initiale : `prisma/migrations/202401010000_init/migration.sql`
+- Seed : `prisma/seed.ts`
+
+Commandes utiles :
+```bash
+pnpm --filter @orlix/api db:migrate   # applique les migrations
+pnpm --filter @orlix/api db:seed      # insère les données de démonstration
+pnpm --filter @orlix/api db:generate  # régénère le client Prisma
+```
+
+## Tests & Qualité
+| Type | Commande |
+|------|----------|
+| Lint global | `pnpm lint` |
+| Tests unitaires (tous packages) | `pnpm test` |
+| Couverture Vitest | `pnpm test:coverage` |
+| Tests e2e Playwright | `pnpm e2e` |
+
+Chaque application dispose également de commandes `pnpm --filter <package> test` pour exécuter ses propres suites.
+
+## Docker & Infrastructure locale
+Un environnement complet (Postgres + API + Admin) est disponible via Docker :
+```bash
 docker-compose up --build
-version: "3.8"
-services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_PASSWORD: orlix
-    ports:
-      - "5432:5432"
-  api:
-    build: ./apps/api
-    depends_on:
-      - db
-    environment:
-      DATABASE_URL: postgres://postgres:orlix@db:5432/orlix
-    ports:
-      - "3001:3001"
-  admin:
-    build: ./apps/admin
-    depends_on:
-      - api
-    ports:
-      - "3000:3000"
-Variables d’Environnement
-| Nom                  | Description            | Exemple                                          |
-| -------------------- | ---------------------- | ------------------------------------------------ |
-| `DATABASE_URL`       | Connexion Postgres     | `postgres://postgres:orlix@localhost:5432/orlix` |
-| `OPENROUTER_API_KEY` | Accès orchestrateur IA | `sk-xxx`                                         |
-| `SUPABASE_URL`       | API Supabase           | `https://xyz.supabase.co`                        |
-| `SUPABASE_KEY`       | Clé publique Supabase  | `eyJ...`                                         |
-| `JWT_SECRET`         | Clé JWT                | `supersecret`                                    |
+```
+- Postgres exposé sur le port 5432 (credentials définis dans `docker-compose.yml`).
+- API Fastify disponible sur http://localhost:3001.
+- Interface Admin sur http://localhost:3000.
 
-CI/CD (GitHub Actions)
-name: CI
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-jobs:
-  build-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - run: pnpm install
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
-📦 Distribution
+Le `Dockerfile` à la racine construit l'API pour les déploiements containerisés.
 
-Web : déployé sur Vercel ou Supabase Edge.
+## CI/CD GitHub Actions
+Deux workflows principaux :
+- `.github/workflows/ci.yml` : installation pnpm, lint, tests, build sur chaque push/PR.
+- `.github/workflows/release.yml` : build des binaires Tauri (Windows/macOS/Linux) et publication sur GitHub Releases.
 
-Desktop : builds Tauri publiés sur GitHub Releases.
+Les secrets requis sont mockés via `.env.example` et peuvent être injectés dans les workflows via les `env:` correspondants.
 
-API : Docker sur VPS (Render, Fly.io ou Railway).
+## Documentation
+- Architecture technique : `docs/architecture.md`
+- Guides spécifiques par application : `apps/*/README.md`
+- Référence Playwright e2e : `tests/e2e/admin.spec.ts`
 
-Database : Supabase Cloud ou Postgres Docker local.
-
-🧩 Extensions futures
-
-Marketplace de modèles d’agents.
-
-Intégration n8n pour automatisations.
-
-Gestion des tokens IA et quotas utilisateurs.
-
-Monitoring en temps réel via websockets.
-
-Mode “Auto-Deploy” GitHub → Orlix Admin.
-
-✅ Définition de Fait (DoD)
-
-CI verte
-
-Tests 80%+
-
-README à jour
-
-Documentation API (OpenAPI)
-
-Aucun TODO actif
-
-Docker build OK
-
-Desktop build OK
-
-Admin accessible sur /
-
-👤 Auteur
-
-Hassan “HK” Bacri Keita
-Fondateur & Architecte du projet Orlix
-Dakar – Sénégal
-© 2025 Orlix Technologies. Tous droits réservés.
-
-💬 Licence
-
-Projet sous licence propriétaire Orlix.
-Toute réutilisation, distribution ou modification sans autorisation écrite est interdite.
+## Définition de fait
+- CI verte et lint sans erreurs
+- Couverture tests ≥ 80 % (Vitest)
+- Documentation OpenAPI accessible (`apps/api/src/openapi.ts`)
+- Images Docker construites avec succès
+- Builds Tauri fonctionnels
+- README synchronisé avec l'état du dépôt
